@@ -1,0 +1,27 @@
+spring:
+  application.name: rbac
+  security:
+    oauth2:
+      client:
+        registration:
+          rbac:
+            client-id: rbac-app
+            client-secret: oasseBVKH5LlEtOzO7S67EvZlLqw8rSE
+            scope: openid,profile,email
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8080/login/oauth2/code/rbac"
+        provider:
+          rbac:
+            issuer-uri: http://localhost:9000/realms/rbac
+            
+server:
+  jetty:
+    accesslog:
+      enabled: true
+      filename: /jetty-access.log
+      retention-period: 30
+      append: true
+      extended-format: true
+      file-date-format: .yyyy-MM-dd
+      log-latency: true
+      custom-format: "%{client}a - %u %t \"%r\" %s %O %{ms}T"
