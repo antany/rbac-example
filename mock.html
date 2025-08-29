@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataflow Pipeline Dashboard</title>
+    <!-- Use the Inter font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Include Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include Chart.js CDN for the pie charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for the table */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-running {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-succeeded {
+            background-color: #d1e5fa;
+            color: #1e40af;
+        }
+        .status-failed {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .text-na {
+            color: #9ca3af;
+        }
+        .pagination-link {
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .pagination-link:hover {
+            background-color: #e5e7eb;
+        }
+        .pagination-link.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .pagination-ellipsis {
+            padding: 8px 4px;
+            cursor: default;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Left Sidebar -->
+        <aside id="sidebar" class="bg-gray-900 text-gray-300 w-20 flex flex-col p-4 shadow-xl transition-all duration-300 ease-in-out">
+            <!-- Logo/Home -->
+            <div class="flex items-center justify-center h-16 mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 md:w-10 md:h-10 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <path d="M14 2v6h6"></path>
+                    <path d="M10 9H8"></path>
+                    <path d="M16 13H8"></path>
+                    <path d="M16 17H8"></path>
+                </svg>
+                <span id="logo-text" class="hidden text-2xl font-bold ml-2 text-white transition-opacity duration-200">Dataflow</span>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-grow">
+                <ul class="space-y-4">
+                    <li>
+                        <a href="#" class="flex items-center justify-center space-x-2 text-sm md:text-base font-medium p-3 rounded-lg bg-gray-800 text-white shadow-inner">
+                            <!-- Dashboard Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="9"></rect>
+                                <rect x="14" y="3" width="7" height="5"></rect>
+                                <rect x="14" y="12" width="7" height="5"></rect>
+                                <rect x="3" y="16" width="7" height="5"></rect>
+                            </svg>
+                            <span class="nav-text hidden transition-opacity duration-200">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center justify-center space-x-2 text-sm md:text-base font-medium p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200 group">
+                            <!-- Pipelines Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400 group-hover:text-white transition-colors duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="17" y1="2" x2="17" y2="12"></line>
+                                <line x1="17" y1="18" x2="17" y2="22"></line>
+                                <line x1="7" y1="2" x2="7" y2="8"></line>
+                                <line x1="7" y1="14" x2="7" y2="22"></line>
+                                <path d="M17 12a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-2z"></path>
+                                <path d="M7 8a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-2z"></path>
+                            </svg>
+                            <span class="nav-text hidden transition-opacity duration-200">Pipelines</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center justify-center space-x-2 text-sm md:text-base font-medium p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200 group">
+                            <!-- Data Sources Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400 group-hover:text-white transition-colors duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 20.94a1.85 1.85 0 0 1-1.84.45L4.5 20.3a2 2 0 0 1-.5-3.23l4.58-4.14a2.95 2.95 0 0 1 4.54-.05L16 15l4-4L20 20l-4 4-2-2-4 4a2.95 2.95 0 0 1-.05-4.54z"></path>
+                                <path d="M18.5 6.5a2 2 0 0 0-2 2v-2a2 2 0 0 0 2 2z"></path>
+                                <path d="M14 10L10 14"></path>
+                            </svg>
+                            <span class="nav-text hidden transition-opacity duration-200">Data Sources</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center justify-center space-x-2 text-sm md:text-base font-medium p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200 group">
+                            <!-- Reports Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400 group-hover:text-white transition-colors duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <path d="M14 2v6h6"></path>
+                                <path d="M10 9H8"></path>
+                                <path d="M16 13H8"></path>
+                                <path d="M16 17H8"></path>
+                            </svg>
+                            <span class="nav-text hidden transition-opacity duration-200">Reports</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center justify-center space-x-2 text-sm md:text-base font-medium p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200 group">
+                            <!-- Settings Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400 group-hover:text-white transition-colors duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
+                                <path d="M12 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"></path>
+                                <path d="M12 4.41L12 2m0 20v-2.41m-6.41-5.59L2 12m20 0l-5.59 0m-3.41-3.41l-2.41 2.41m2.41 2.41l-2.41 2.41m-3.41-3.41l-2.41-2.41m2.41-2.41l-2.41-2.41"></path>
+                            </svg>
+                            <span class="nav-text hidden transition-opacity duration-200">Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="flex items-center justify-between p-6 bg-white border-b border-gray-200 shadow-sm">
+                <!-- Hamburger Menu Button -->
+                <button id="menu-btn" class="p-2 mr-4 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <h1 class="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
+                <div class="flex items-center space-x-4">
+                    <!-- User Profile Placeholder -->
+                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-semibold text-gray-600">
+                        JP
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="flex-1 overflow-y-auto p-8 md:p-12">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-xl md:text-2xl font-semibold mb-6">Pipeline Status and Metrics</h2>
+                    
+                    <div class="overflow-x-auto rounded-lg">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr>
+                                    <th class="py-3 px-6 text-left">Pipeline Name</th>
+                                    <th class="py-3 px-6 text-left">Status</th>
+                                    <th class="py-3 px-6 text-left">Start DT</th>
+                                    <th class="py-3 px-6 text-left">End DT</th>
+                                    <th class="py-3 px-6 text-left">Row Distribution</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pipeline-table-body">
+                                <!-- Pipeline rows will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div class="mt-8 flex justify-end items-center space-x-2">
+                        <button id="prev-btn" class="pagination-link" disabled>Previous</button>
+                        <div id="pagination-numbers" class="flex space-x-1"></div>
+                        <button id="next-btn" class="pagination-link">Next</button>
+                    </div>
+                </div>
+
+                <!-- Daily Summary Section -->
+                <div class="bg-white rounded-xl shadow-lg p-8 mt-12">
+                    <h2 class="text-xl md:text-2xl font-semibold mb-6">Daily Row Processing Summary</h2>
+                    <div class="overflow-x-auto rounded-lg">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr>
+                                    <th class="py-3 px-6 text-left">Source System</th>
+                                    <th id="current-day-header" class="py-3 px-6 text-left"></th>
+                                    <th id="prev-day-header" class="py-3 px-6 text-left"></th>
+                                    <th class="py-3 px-6 text-left">Difference</th>
+                                    <th class="py-3 px-6 text-left">% Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody id="daily-summary-table-body">
+                                <!-- Daily summary rows will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const tableBody = document.getElementById('pipeline-table-body');
+        const paginationNumbers = document.getElementById('pagination-numbers');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const dailySummaryTableBody = document.getElementById('daily-summary-table-body');
+        const menuBtn = document.getElementById('menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const logoText = document.getElementById('logo-text');
+        const navTexts = document.querySelectorAll('.nav-text');
+
+        const rowsPerPage = 10;
+        let currentPage = 1;
+
+        // Function to create a pie chart
+        function createPieChart(elementId, data) {
+            const ctx = document.getElementById(elementId).getContext('2d');
+            // Check if a chart already exists on the canvas and destroy it
+            if (window.Chart.getChart(elementId)) {
+                window.Chart.getChart(elementId).destroy();
+            }
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Processed', 'Filtered', 'Written'],
+                    datasets: [{
+                        data: [data.processed, data.filtered, data.written],
+                        backgroundColor: [
+                            '#3b82f6', // blue-500 for processed
+                            '#ef4444', // red-500 for filtered
+                            '#22c55e'  // green-500 for written
+                        ],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Hide the legend
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += new Intl.NumberFormat('en-US').format(context.parsed) + ' rows';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Function to generate a large amount of mock pipeline data
+        function generateMockData(count) {
+            const statuses = ['Running', 'Succeeded', 'Failed'];
+            const data = [];
+            for (let i = 1; i <= count; i++) {
+                const status = statuses[Math.floor(Math.random() * statuses.length)];
+                const processed = Math.floor(Math.random() * 5000000) + 5000;
+                const filtered = status === 'Failed' ? Math.floor(Math.random() * 1000) : 0;
+                const written = processed - filtered;
+                data.push({
+                    name: `Pipeline ${String(i).padStart(3, '0')}`,
+                    status: status,
+                    start_dt: `2024-05-${String(Math.floor(Math.random() * 20) + 1).padStart(2, '0')} 0${Math.floor(Math.random() * 10) + 9}:00 AM`,
+                    end_dt: status === 'Running' ? 'N/A' : `2024-05-${String(Math.floor(Math.random() * 20) + 1).padStart(2, '0')} 0${Math.floor(Math.random() * 10) + 9}:00 AM`,
+                    chart_data: { processed, filtered, written }
+                });
+            }
+            return data;
+        }
+
+        const pipelineData = generateMockData(150); // Generate 150 mock pipelines
+
+        function displayRows(page) {
+            page--; // adjust for 0-based index
+            const start = page * rowsPerPage;
+            const end = start + rowsPerPage;
+            const paginatedItems = pipelineData.slice(start, end);
+
+            tableBody.innerHTML = '';
+            paginatedItems.forEach((item, index) => {
+                const row = document.createElement('tr');
+                const statusBadgeClass = item.status === 'Running' ? 'status-running' : item.status === 'Succeeded' ? 'status-succeeded' : 'status-failed';
+                const chartId = `chart-${start + index}`;
+                const endDtHtml = item.end_dt === 'N/A' ? `<span class="text-na">N/A</span>` : item.end_dt;
+
+                row.innerHTML = `
+                    <td class="py-4 px-6 text-sm text-gray-900">${item.name}</td>
+                    <td class="py-4 px-6 text-sm">
+                        <span class="status-badge ${statusBadgeClass}">${item.status}</span>
+                    </td>
+                    <td class="py-4 px-6 text-sm">${item.start_dt}</td>
+                    <td class="py-4 px-6 text-sm">${endDtHtml}</td>
+                    <td class="py-4 px-6 text-sm">
+                        <div class="w-16 h-16 mx-auto my-0">
+                            <canvas id="${chartId}"></canvas>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+                
+                // Add a small delay to ensure the canvas element is in the DOM
+                setTimeout(() => {
+                    createPieChart(chartId, item.chart_data);
+                }, 10);
+            });
+        }
+        
+        // This function has been updated to handle the overflow issue
+        function setupPagination() {
+            paginationNumbers.innerHTML = '';
+            const pageCount = Math.ceil(pipelineData.length / rowsPerPage);
+            
+            const maxPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+            let endPage = Math.min(pageCount, startPage + maxPagesToShow - 1);
+
+            if (endPage - startPage + 1 < maxPagesToShow) {
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            }
+
+            if (startPage > 1) {
+                const firstBtn = createPaginationButton(1);
+                paginationNumbers.appendChild(firstBtn);
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.classList.add('pagination-ellipsis');
+                    ellipsis.innerText = '...';
+                    paginationNumbers.appendChild(ellipsis);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = createPaginationButton(i);
+                btn.innerText = i;
+                paginationNumbers.appendChild(btn);
+            }
+
+            if (endPage < pageCount) {
+                if (endPage < pageCount - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.classList.add('pagination-ellipsis');
+                    ellipsis.innerText = '...';
+                    paginationNumbers.appendChild(ellipsis);
+                }
+                const lastBtn = createPaginationButton(pageCount);
+                paginationNumbers.appendChild(lastBtn);
+            }
+        }
+        
+        function createPaginationButton(page) {
+            const btn = document.createElement('button');
+            btn.classList.add('pagination-link');
+            btn.innerText = page;
+            btn.addEventListener('click', () => {
+                currentPage = page;
+                displayRows(currentPage);
+                setupPagination(); // Re-render pagination on page change
+                updatePaginationState();
+            });
+            return btn;
+        }
+
+        function updatePaginationState() {
+            const pageCount = Math.ceil(pipelineData.length / rowsPerPage);
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === pageCount;
+
+            document.querySelectorAll('.pagination-link').forEach(btn => {
+                if (parseInt(btn.innerText) === currentPage) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                displayRows(currentPage);
+                setupPagination();
+                updatePaginationState();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            const pageCount = Math.ceil(pipelineData.length / rowsPerPage);
+            if (currentPage < pageCount) {
+                currentPage++;
+                displayRows(currentPage);
+                setupPagination();
+                updatePaginationState();
+            }
+        });
+
+        // --- Daily Summary Section JavaScript ---
+        
+        // Function to generate mock daily data by source system
+        function generateDailyDataBySource() {
+            const today = new Date();
+            const prevDay = new Date();
+            prevDay.setDate(today.getDate() - 1); // Get previous day
+
+            // A function to get the previous business day
+            function getPreviousBusinessDay(date) {
+                let prevBusinessDay = new Date(date);
+                do {
+                    prevBusinessDay.setDate(prevBusinessDay.getDate() - 1);
+                } while (prevBusinessDay.getDay() === 0 || prevBusinessDay.getDay() === 6); // 0 = Sunday, 6 = Saturday
+                return prevBusinessDay;
+            }
+
+            const currentDay = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const prevBusinessDay = getPreviousBusinessDay(today).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            
+            const sourceSystems = ['Salesforce CRM', 'SAP ECC', 'Google Analytics', 'Custom Database'];
+            const data = [];
+
+            sourceSystems.forEach(source => {
+                let todayCount = 0;
+                let prevCount = 0;
+                
+                if (source === 'Salesforce CRM') {
+                    todayCount = Math.floor(Math.random() * 5000000) + 15000000;
+                    prevCount = todayCount - Math.floor(Math.random() * 2000000) + 500000;
+                } else if (source === 'SAP ECC') {
+                    todayCount = Math.floor(Math.random() * 200000) + 3000000;
+                    prevCount = todayCount - Math.floor(Math.random() * 100000) + 20000;
+                } else if (source === 'Google Analytics') {
+                    todayCount = Math.floor(Math.random() * 10000000) + 5000000;
+                    prevCount = todayCount + Math.floor(Math.random() * 1000000) - 500000;
+                } else if (source === 'Custom Database') {
+                    todayCount = Math.floor(Math.random() * 1000000) + 500000;
+                    prevCount = todayCount + Math.floor(Math.random() * 500000) - 100000;
+                }
+
+                data.push({
+                    sourceSystem: source,
+                    currentDay: { date: currentDay, count: todayCount },
+                    prevDay: { date: prevBusinessDay, count: prevCount }
+                });
+            });
+
+            return data;
+        }
+
+        // Function to render the daily data in the new table
+        function renderDailyData(data) {
+            dailySummaryTableBody.innerHTML = '';
+            
+            // Update table headers with dynamic dates
+            const currentDayHeader = document.getElementById('current-day-header');
+            const prevDayHeader = document.getElementById('prev-day-header');
+            if (data.length > 0) {
+                currentDayHeader.textContent = data[0].currentDay.date;
+                prevDayHeader.textContent = data[0].prevDay.date;
+            }
+
+            data.forEach(item => {
+                const diff = item.currentDay.count - item.prevDay.count;
+                const percentDiff = (diff / item.prevDay.count) * 100;
+
+                const diffClass = diff > 0 ? 'text-green-500' : 'text-red-500';
+                const diffSign = diff > 0 ? '+' : '';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="py-4 px-6 text-sm text-gray-900">${item.sourceSystem}</td>
+                    <td class="py-4 px-6 text-sm text-gray-600">${item.currentDay.count.toLocaleString()} rows</td>
+                    <td class="py-4 px-6 text-sm text-gray-600">${item.prevDay.count.toLocaleString()} rows</td>
+                    <td class="py-4 px-6 text-sm font-semibold ${diffClass}">${diffSign}${diff.toLocaleString()}</td>
+                    <td class="py-4 px-6 text-sm font-semibold ${diffClass}">${diffSign}${percentDiff.toFixed(2)}%</td>
+                `;
+                dailySummaryTableBody.appendChild(row);
+            });
+        }
+
+        // Sidebar toggle logic
+        menuBtn.addEventListener('click', () => {
+            if (sidebar.classList.contains('w-20')) {
+                // Expand menu
+                sidebar.classList.remove('w-20');
+                sidebar.classList.add('w-64');
+                logoText.classList.remove('hidden');
+                navTexts.forEach(span => {
+                    span.classList.remove('hidden');
+                });
+                
+                // Adjust justification for expanded state
+                document.querySelectorAll('nav a').forEach(link => {
+                    link.classList.remove('justify-center');
+                    link.classList.add('justify-start');
+                });
+
+            } else {
+                // Collapse menu
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-20');
+                logoText.classList.add('hidden');
+                navTexts.forEach(span => {
+                    span.classList.add('hidden');
+                });
+
+                // Adjust justification for collapsed state
+                document.querySelectorAll('nav a').forEach(link => {
+                    link.classList.remove('justify-start');
+                    link.classList.add('justify-center');
+                });
+            }
+        });
+
+        // Initial setup on window load
+        window.onload = function() {
+            displayRows(currentPage);
+            setupPagination();
+            updatePaginationState();
+
+            // Render the new daily summary table
+            const dailyData = generateDailyDataBySource();
+            renderDailyData(dailyData);
+        };
+    </script>
+
+</body>
+</html>
