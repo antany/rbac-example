@@ -115,17 +115,6 @@
                     </svg>
                 </button>
             </div>
-            <!-- Logo/Home -->
-            <div class="flex items-center justify-center h-16 mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 md:w-10 md:h-10 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <path d="M14 2v6h6"></path>
-                    <path d="M10 9H8"></path>
-                    <path d="M16 13H8"></path>
-                    <path d="M16 17H8"></path>
-                </svg>
-                <span id="logo-text" class="hidden text-2xl font-bold ml-2 text-white transition-opacity duration-200">Dataflow</span>
-            </div>
 
             <!-- Navigation Links -->
             <nav class="flex-grow">
@@ -264,7 +253,6 @@
         const dailySummaryTableBody = document.getElementById('daily-summary-table-body');
         const menuBtn = document.getElementById('menu-btn');
         const sidebar = document.getElementById('sidebar');
-        const logoText = document.getElementById('logo-text');
         const navTexts = document.querySelectorAll('.nav-text');
         const themeToggle = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
@@ -586,7 +574,6 @@
                 // Expand menu
                 sidebar.classList.remove('w-20');
                 sidebar.classList.add('w-64');
-                logoText.classList.remove('hidden');
                 navTexts.forEach(span => {
                     span.classList.remove('hidden');
                 });
@@ -601,7 +588,6 @@
                 // Collapse menu
                 sidebar.classList.remove('w-64');
                 sidebar.classList.add('w-20');
-                logoText.classList.add('hidden');
                 navTexts.forEach(span => {
                     span.classList.add('hidden');
                 });
