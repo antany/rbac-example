@@ -22,7 +22,7 @@
             width: 100%;
         }
         th, td {
-            padding: 8px 10px;
+            padding: 12px 24px;
             text-align: left;
             border-bottom: 1px solid #e5e7eb;
         }
@@ -98,6 +98,8 @@
         .dark td { border-bottom-color: #4a5568; }
         .dark .pagination-link:hover { background-color: #4a5568; }
         .dark .pagination-link.active { background-color: #63b3ed; color: #fff; }
+
+        /* The custom flex classes for layout have been removed */
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -105,6 +107,14 @@
     <div class="flex h-screen overflow-hidden">
         <!-- Left Sidebar -->
         <aside id="sidebar" class="bg-gray-900 text-gray-300 w-20 flex flex-col p-4 shadow-xl transition-all duration-300 ease-in-out">
+            <!-- Hamburger Menu Button -->
+            <div class="flex justify-end pr-1 pt-1">
+                <button id="menu-btn" class="p-2 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
             <!-- Logo/Home -->
             <div class="flex items-center justify-center h-16 mb-6">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 md:w-10 md:h-10 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -159,19 +169,6 @@
                     </li>
                     <li>
                         <a href="#" class="flex items-center justify-center space-x-2 text-sm md:text-base font-medium p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200 group">
-                            <!-- Reports Icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400 group-hover:text-white transition-colors duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <path d="M14 2v6h6"></path>
-                                <path d="M10 9H8"></path>
-                                <path d="M16 13H8"></path>
-                                <path d="M16 17H8"></path>
-                            </svg>
-                            <span class="nav-text hidden transition-opacity duration-200">Reports</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center justify-center space-x-2 text-sm md:text-base font-medium p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200 group">
                             <!-- Settings Icon -->
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400 group-hover:text-white transition-colors duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
@@ -186,32 +183,27 @@
         </aside>
 
         <!-- Main Content Area -->
-        <main class="flex-1 flex flex-col overflow-hidden">
+        <main class="flex-1 flex flex-col overflow-y-auto">
             <!-- Header -->
             <header class="flex items-center justify-between p-6 bg-white border-b border-gray-200 shadow-sm">
-                <!-- Hamburger Menu Button -->
-                <button id="menu-btn" class="p-2 mr-4 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <!-- The SVG paths for the sun/moon will be dynamically set by JS -->
                     </svg>
                 </button>
+                
                 <h1 class="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
-                <div class="flex items-center space-x-4">
-                    <!-- Theme Toggle Button -->
-                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                    </button>
-                    <!-- User Profile Placeholder -->
-                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-semibold text-gray-600">
-                        JP
-                    </div>
+                
+                <!-- User Initials in a circle -->
+                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">JD</span>
                 </div>
             </header>
 
             <!-- Dashboard Content -->
-            <div class="flex-1 overflow-y-auto p-8 md:p-12">
+            <div class="p-8 md:p-12 space-y-8">
+                <!-- Pipeline Status Section -->
                 <div class="bg-white rounded-xl shadow-lg p-8">
                     <h2 class="text-xl md:text-2xl font-semibold mb-6">Pipeline Status and Metrics</h2>
                     
@@ -241,17 +233,17 @@
                 </div>
 
                 <!-- Daily Summary Section -->
-                <div class="bg-white rounded-xl shadow-lg p-8 mt-12">
+                <div class="bg-white rounded-xl shadow-lg p-8">
                     <h2 class="text-xl md:text-2xl font-semibold mb-6">Daily Row Processing Summary</h2>
                     <div class="overflow-x-auto rounded-lg">
                         <table class="min-w-full bg-white">
                             <thead>
                                 <tr>
-                                    <th class="py-3 px-6 text-left">Source System</th>
-                                    <th id="current-day-header" class="py-3 px-6 text-left"></th>
-                                    <th id="prev-day-header" class="py-3 px-6 text-left"></th>
-                                    <th class="py-3 px-6 text-left">Difference</th>
-                                    <th class="py-3 px-6 text-left">% Difference</th>
+                                    <th class="py-2 px-4 text-left">Source System</th>
+                                    <th id="current-day-header" class="py-2 px-4 text-left"></th>
+                                    <th id="prev-day-header" class="py-2 px-4 text-left"></th>
+                                    <th class="py-2 px-4 text-left">Difference</th>
+                                    <th class="py-2 px-4 text-left">% Difference</th>
                                 </tr>
                             </thead>
                             <tbody id="daily-summary-table-body">
@@ -364,13 +356,13 @@
                 const endDtHtml = item.end_dt === 'N/A' ? `<span class="text-na">N/A</span>` : item.end_dt;
 
                 row.innerHTML = `
-                    <td class="py-4 px-6 text-sm text-gray-900">${item.name}</td>
-                    <td class="py-4 px-6 text-sm">
+                    <td class="py-3 px-6 text-sm text-gray-900">${item.name}</td>
+                    <td class="py-3 px-6 text-sm">
                         <span class="status-badge ${statusBadgeClass}">${item.status}</span>
                     </td>
-                    <td class="py-4 px-6 text-sm">${item.start_dt}</td>
-                    <td class="py-4 px-6 text-sm">${endDtHtml}</td>
-                    <td class="py-4 px-6 text-sm">
+                    <td class="py-3 px-6 text-sm">${item.start_dt}</td>
+                    <td class="py-3 px-6 text-sm">${endDtHtml}</td>
+                    <td class="py-3 px-6 text-sm">
                         <div class="w-16 h-16 mx-auto my-0">
                             <canvas id="${chartId}"></canvas>
                         </div>
@@ -545,11 +537,11 @@
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td class="py-4 px-6 text-sm text-gray-900">${item.sourceSystem}</td>
-                    <td class="py-4 px-6 text-sm text-gray-600">${item.currentDay.count.toLocaleString()} rows</td>
-                    <td class="py-4 px-6 text-sm text-gray-600">${item.prevDay.count.toLocaleString()} rows</td>
-                    <td class="py-4 px-6 text-sm font-semibold ${diffClass}">${diffSign}${diff.toLocaleString()}</td>
-                    <td class="py-4 px-6 text-sm font-semibold ${diffClass}">${diffSign}${percentDiff.toFixed(2)}%</td>
+                    <td class="py-2 px-4 text-sm text-gray-900">${item.sourceSystem}</td>
+                    <td class="py-2 px-4 text-sm text-gray-600">${item.currentDay.count.toLocaleString()} rows</td>
+                    <td class="py-2 px-4 text-sm text-gray-600">${item.prevDay.count.toLocaleString()} rows</td>
+                    <td class="py-2 px-4 text-sm font-semibold ${diffClass}">${diffSign}${diff.toLocaleString()}</td>
+                    <td class="py-2 px-4 text-sm font-semibold ${diffClass}">${diffSign}${percentDiff.toFixed(2)}%</td>
                 `;
                 dailySummaryTableBody.appendChild(row);
             });
