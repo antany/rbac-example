@@ -75,6 +75,29 @@
             padding: 8px 4px;
             cursor: default;
         }
+
+        /* Dark Mode Styles */
+        .dark .bg-gray-100 { background-color: #1a202c; }
+        .dark .bg-white { background-color: #2d3748; }
+        .dark .text-gray-800 { color: #e2e8f0; }
+        .dark .text-gray-900 { color: #f7fafc; }
+        .dark .text-gray-600 { color: #a0aec0; }
+        .dark .border-gray-200 { border-color: #4a5568; }
+        .dark .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.25); }
+        .dark .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.25); }
+        .dark .bg-gray-900 { background-color: #171923; }
+        .dark .bg-gray-800 { background-color: #2d3748; }
+        .dark .text-gray-300 { color: #cbd5e0; }
+        .dark .text-gray-400 { color: #a0aec0; }
+        .dark .hover\:bg-gray-800:hover { background-color: #2d3748; }
+        .dark .group:hover .text-gray-400 { color: #cbd5e0; }
+        .dark .hover\:bg-gray-200:hover { background-color: #4a5568; }
+        .dark .focus\:ring-blue-500:focus { --tw-ring-color: #63b3ed; }
+        .dark table { color: #e2e8f0; }
+        .dark th { background-color: #2d3748; color: #a0aec0; }
+        .dark td { border-bottom-color: #4a5568; }
+        .dark .pagination-link:hover { background-color: #4a5568; }
+        .dark .pagination-link.active { background-color: #63b3ed; color: #fff; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -174,6 +197,12 @@
                 </button>
                 <h1 class="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
                 <div class="flex items-center space-x-4">
+                    <!-- Theme Toggle Button -->
+                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
                     <!-- User Profile Placeholder -->
                     <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-semibold text-gray-600">
                         JP
@@ -245,6 +274,8 @@
         const sidebar = document.getElementById('sidebar');
         const logoText = document.getElementById('logo-text');
         const navTexts = document.querySelectorAll('.nav-text');
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
 
         const rowsPerPage = 10;
         let currentPage = 1;
@@ -523,7 +554,40 @@
                 dailySummaryTableBody.appendChild(row);
             });
         }
+        
+        // --- Theme Toggle Logic ---
+        function setThemeIcon(theme) {
+            if (theme === 'light') {
+                themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />`;
+            } else {
+                themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />`;
+            }
+        }
+        
+        // Initial theme setup on page load
+        const themePreference = localStorage.getItem('theme');
+        if (themePreference === 'light') {
+            document.documentElement.classList.remove('dark');
+            setThemeIcon('light');
+        } else {
+            // Default to dark theme if no preference is stored
+            document.documentElement.classList.add('dark');
+            setThemeIcon('dark');
+            localStorage.setItem('theme', 'dark');
+        }
 
+        themeToggle.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                setThemeIcon('light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                setThemeIcon('dark');
+            }
+        });
+        
         // Sidebar toggle logic
         menuBtn.addEventListener('click', () => {
             if (sidebar.classList.contains('w-20')) {
