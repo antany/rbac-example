@@ -1,0 +1,40 @@
+// vite.config.js
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        // The `configure` function gives you access to the underlying proxy
+        // instance to add custom event listeners.
+        configure: (proxy, options) => {
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            const location = proxyRes.headers.location;
+            
+            // Check if the response is a redirect and has a Location header
+            if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && location) {
+              
+              // Only rewrite if the location is for the target server, not external.
+              if (location.startsWith(options.target)) {
+                
+                // Rewrite the Location header to use the original path relative to the proxy
+                // The `req.url` will be something like `/api/login`
+                const newLocation = req.url.split('?')[0]; // Remove query params if any
+                
+                // Check if the new path matches the redirect path. This is a simplified example.
+                // You may need more robust logic for complex cases.
+                if (location.endsWith(newLocation)) {
+                  proxyRes.headers.location = newLocation;
+                }
+                
+                console.log(`Rewriting redirect location: ${location} -> ${newLocation}`);
+              }
+            }
+          });
+        },
+      },
+    },
+  },
+});
