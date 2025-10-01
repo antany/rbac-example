@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Release Branch Workflow Guide</title>
+    
+    <style>
+        /* BASE STYLES & FONT */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 1rem; /* p-4 */
+        }
+        
+        .container {
+            max-width: 1280px; /* max-w-6xl */
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1.5rem; /* p-6 */
+        }
+
+        /* Responsive padding for larger screens */
+        @media (min-width: 768px) {
+            body {
+                padding: 2rem; /* md:p-8 */
+            }
+            .container {
+                padding: 2.5rem; /* md:p-10 */
+            }
+        }
+        
+        /* HEADINGS */
+        .header-title {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 800; /* font-extrabold */
+            color: #1f2937; /* text-gray-900 */
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em; /* tracking-tight */
+        }
+        .header-subtitle {
+            font-size: 1.25rem; /* text-xl */
+            color: #4b5563; /* text-gray-600 */
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        /* SECTION HEADINGS */
+        .section-heading {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+            color: #1f2937; /* text-gray-800 */
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #3b82f6; /* border-l-4 border-blue-500 */
+            padding-left: 1rem;
+        }
+
+        /* FLOW DIAGRAM CONTAINER */
+        #svg-container {
+            width: 100%;
+            overflow-x: auto;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background-color: #f9fafb; /* bg-gray-50 */
+            margin-bottom: 2.5rem;
+        }
+
+        /* SVG STYLES */
+        .branch-main { fill: none; stroke: #10b981; stroke-width: 4; } /* Green 500 */
+        .branch-prerelease { fill: none; stroke: #3b82f6; stroke-width: 4; } /* Blue 500 */
+        .branch-release { fill: none; stroke: #ef4444; stroke-width: 4; } /* Red 500 */
+        .branch-dev { fill: none; stroke: #a855f7; stroke-width: 3; stroke-dasharray: 4 2; } /* Purple 500 (Dashed for Dev) */
+        .branch-dev-deploy { fill: none; stroke: #64748b; stroke-width: 3; } /* Slate 500 for isolated dev deploy */
+        
+        .arrow { fill: #374151; }
+        .label { font-size: 10px; fill: #1f2937; font-weight: 500; }
+        .label-main { fill: #059669; font-weight: 700; }
+        
+        /* Tooltip style */
+        .tooltip {
+            visibility: hidden;
+            background-color: #1f2937;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .svg-container {
+            position: relative;
+        }
+        
+        .node:hover + .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* TABLE STYLES */
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 2.5rem;
+        }
+        .workflow-table {
+            min-width: 100%;
+            border-collapse: collapse;
+            border-radius: 0.5rem;
+            overflow: hidden; /* Important for rounded corners on inner elements */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06); /* shadow-md */
+        }
+        .table-head {
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+        .table-head th {
+            padding: 0.75rem 1rem; /* px-4 py-3 */
+            text-align: left;
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 600; /* font-semibold */
+            color: #374151; /* text-gray-700 */
+            text-transform: uppercase;
+            letter-spacing: 0.05em; /* tracking-wider */
+        }
+        .table-body tr {
+            border-top: 1px solid #e5e7eb; /* divide-y divide-gray-200 */
+        }
+        .table-body td {
+            padding: 1rem 1rem; /* px-4 py-4 */
+            white-space: nowrap;
+            color: #374151; /* text-gray-700 */
+        }
+        
+        /* Specific Table Cell Colors */
+        .code { font-family: monospace; }
+        .bg-green-50 { background-color: #ecfdf5; }
+        .text-green-700 { color: #047857; }
+        .bg-blue-50 { background-color: #eff6ff; }
+        .text-blue-700 { color: #1d4ed8; }
+        .bg-red-50 { background-color: #fef2f2; }
+        .text-red-700 { color: #b91c1c; }
+        .bg-slate-100 { background-color: #f1f5f9; }
+        .text-slate-700 { color: #334155; }
+        .bg-purple-50 { background-color: #faf5ff; }
+        .text-purple-700 { color: #6d28d9; }
+        .text-red-600 { color: #dc2626; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+
+        /* SUMMARY CARDS */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem; /* gap-6 */
+        }
+        @media (min-width: 768px) {
+            .summary-grid {
+                grid-template-columns: repeat(3, 1fr); /* md:grid-cols-3 */
+            }
+        }
+
+        .summary-card {
+            padding: 1.5rem; /* p-6 */
+            border-top-width: 4px; /* border-t-4 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+        }
+        
+        .card-title {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            margin-bottom: 0.5rem;
+        }
+        .card-content { color: #374151; } /* text-gray-700 */
+        
+        .list-disc {
+            list-style-type: disc;
+            margin-top: 0.75rem;
+            padding-left: 1.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .code-block {
+            display: block;
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: #4b5563;
+            font-family: monospace;
+        }
+
+        /* Card Specific Styling */
+        .card-blue {
+            background-color: #eff6ff; /* bg-blue-50 */
+            border-top-color: #3b82f6; /* border-blue-500 */
+        }
+        .card-blue .card-title { color: #1d4ed8; } /* text-blue-700 */
+
+        .card-yellow {
+            background-color: #fffbeb; /* bg-yellow-50 */
+            border-top-color: #f59e0b; /* border-yellow-500 */
+        }
+        .card-yellow .card-title { color: #b45309; } /* text-yellow-700 */
+
+        .card-green {
+            background-color: #ecfdf5; /* bg-green-50 */
+            border-top-color: #10b981; /* border-green-500 */
+        }
+        .card-green .card-title { color: #047857; } /* text-green-700 */
+    </style>
+    <script>
+        // Simple JS for tooltips to work correctly on touch/hover
+        document.addEventListener('DOMContentLoaded', () => {
+            const nodes = document.querySelectorAll('.node');
+            const svgContainer = document.getElementById('svg-container');
+
+            nodes.forEach(node => {
+                // Ensure nodes can be clicked to activate the tooltip on mobile
+                node.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const tooltip = node.nextElementSibling;
+                    // Hide all other tooltips
+                    document.querySelectorAll('.tooltip').forEach(t => {
+                        t.style.visibility = 'hidden';
+                        t.style.opacity = '0';
+                    });
+                    
+                    // Show current tooltip
+                    tooltip.style.visibility = 'visible';
+                    tooltip.style.opacity = '1';
+
+                    // Position the tooltip based on the node's position (using rough estimation)
+                    const bbox = node.getBoundingClientRect();
+                    const svgRect = svgContainer.getBoundingClientRect();
+                    
+                    tooltip.style.left = `${bbox.left - svgRect.left + bbox.width / 2}px`;
+                    tooltip.style.top = `${bbox.top - svgRect.top - 30}px`;
+
+                });
+            });
+
+            // Hide tooltips when touching elsewhere
+            document.addEventListener('touchstart', (e) => {
+                if (!e.target.closest('.node')) {
+                    document.querySelectorAll('.tooltip').forEach(t => {
+                        t.style.visibility = 'hidden';
+                        t.style.opacity = '0';
+                    });
+                }
+            });
+        });
+
+        // Function to set up the tooltips on hover for desktop
+        function setupTooltip(id, content) {
+            const node = document.getElementById(id);
+            if (!node) return;
+            
+            node.setAttribute('title', content);
+            node.classList.add('node'); // Add the node class
+        }
+
+        window.onload = () => {
+            setupTooltip('main-branch', 'Main branch: Always stable, reflects production. Only receives merges from Release_ branches.');
+            setupTooltip('prerelease-branch', 'PreRelease branch: The staging area for all features and fixes targeted for the next deployment. QA testing occurs here.');
+            setupTooltip('release-branch', 'Release branch: An immutable snapshot created immediately before deployment. Deployed to production.');
+            setupTooltip('dev-deploy-branch', 'Deploy/Dev branch: Fast-track, isolated branch for quick testing in the development environment. NEVER merges into any other branch.');
+            setupTooltip('dev-branch-line', 'Feature/Bugfix branches: Isolated development work. Branched from PreRelease and merged back into PreRelease.');
+        };
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <h1 class="header-title">
+            🔱 Release Branch Workflow Guide
+        </h1>
+        <p class="header-subtitle">
+            A structured Git branching model for staged releases and formal QA cycles.
+        </p>
+
+        <!-- VISUAL FLOW DIAGRAM -->
+        <h2 class="section-heading">1. Visual Flow Diagram</h2>
+        
+        <div id="svg-container" class="svg-container">
+            <svg viewBox="0 0 800 350" style="width: 100%; height: auto; min-width: 700px;">
+                
+                <!-- LEGEND -->
+                <g transform="translate(620, 20)">
+                    <rect x="0" y="0" width="170" height="115" rx="5" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"></rect>
+                    <text x="10" y="20" style="font-size: 1rem; font-weight: 600;" fill="#1f2937">Legend</text>
+                    
+                    <circle cx="15" cy="40" r="4" fill="#10b981"></circle>
+                    <text x="25" y="44" class="label">Main (Production)</text>
+                    
+                    <circle cx="15" cy="59" r="4" fill="#3b82f6"></circle>
+                    <text x="25" y="63" class="label">PreRelease (Staging/QA)</text>
+
+                    <circle cx="15" cy="78" r="4" fill="#ef4444"></circle>
+                    <text x="25" y="82" class="label">Release (Deployment Snapshot)</text>
+                    
+                    <circle cx="15" cy="97" r="4" fill="#64748b"></circle>
+                    <text x="25" y="101" class="label">Deploy/Dev (Fast Track)</text>
+                </g>
+
+                <!-- BRANCH LINES -->
+                
+                <!-- Main Branch (Bottom) -->
+                <line x1="50" y1="300" x2="750" y2="300" class="branch-main" id="main-branch"></line>
+                <text x="40" y="325" class="label-main">main</text>
+                
+                <!-- PreRelease Branch (Middle) -->
+                <line x1="150" y1="180" x2="600" y2="180" class="branch-prerelease" id="prerelease-branch"></line>
+                <text x="140" y="205" class="label" fill="#1d4ed8">PreRelease_YYYYMMrX</text>
+                
+                <!-- Deploy/Dev Branch (New addition) -->
+                <line x1="200" y1="240" x2="650" y2="240" class="branch-dev-deploy" id="dev-deploy-branch"></line>
+                <text x="190" y="265" class="label" fill="#64748b">deploy/dev</text>
+                
+                <!-- Release Branch (Top) -->
+                <line x1="450" y1="60" x2="600" y2="60" class="branch-release" id="release-branch"></line>
+                <text x="440" y="40" class="label" fill="#b91c1c">Release_YYYYMMrX</text>
+
+                <!-- FEATURE/BUGFIX Branches Line (Middle Left) -->
+                <line x1="250" y1="180" x2="250" y2="270" class="branch-dev" stroke-width="0"></line>
+                <text x="240" y="285" class="label" fill="#a855f7">feature/JIRA-XXX-desc</text>
+                <text x="240" y="300" class="label" fill="#a855f7">bugfix/JIRA-YYY-desc</text>
+                
+                
+                <!-- --- FLOW ARROWS & LABELS --- -->
+
+                <!-- 1. PreRelease Creation -->
+                <line x1="150" y1="300" x2="150" y2="180" class="arrow" stroke="#3b82f6" stroke-width="2"></line>
+                <text x="155" y="240" class="label" fill="#3b82f6" transform="rotate(90, 155, 240)">1. Create PreRelease</text>
+
+                <!-- 2. Dev Branching off PreRelease -->
+                <line x1="250" y1="180" x2="250" y2="280" class="branch-dev"></line>
+                <path d="M 250 280 L 245 275 L 255 275 L 250 280" class="arrow" transform="translate(0, 5)"></path> 
+                <text x="255" y="235" class="label" fill="#a855f7" transform="rotate(90, 255, 235)">2. Branch off PreRelease</text>
+
+                
+                <!-- 3A. Standard Merge to PreRelease (Formal QA Path) -->
+                <line x1="350" y1="280" x2="350" y2="180" class="branch-dev" stroke-width="3"></line>
+                <path d="M 350 180 L 345 185 L 355 185 L 350 180" class="arrow" transform="translate(0, 5)"></path> 
+                <text x="355" y="240" class="label" fill="#3b82f6" transform="rotate(90, 355, 240)">3A. PR & Merge to PreRelease (QA Path)</text>
+                
+                <!-- 3B. Quick Merge to Deploy/Dev (Fast Track Path) -->
+                <line x1="400" y1="280" x2="400" y2="240" class="branch-dev-deploy" stroke-width="3"></line>
+                <path d="M 400 240 L 395 245 L 405 245 L 400 240" class="arrow" transform="translate(0, 5)"></path> 
+                <text x="405" y="260" class="label" fill="#64748b" transform="rotate(90, 405, 260)">3B. Quick Merge to deploy/dev (No PR/CI)</text>
+
+                <!-- 4. Release Creation (Final Lock) -->
+                <line x1="450" y1="180" x2="450" y2="60" class="arrow" stroke="#ef4444" stroke-width="2"></line>
+                <text x="455" y="120" class="label" fill="#ef4444" transform="rotate(90, 455, 120)">4. Final Lock (Create Release)</text>
+
+                <!-- 5. Merge Back to Main (Post-Deployment) -->
+                <line x1="600" y1="60" x2="600" y2="300" class="arrow" stroke="#10b981" stroke-width="3"></line>
+                <path d="M 600 300 L 590 295 L 600 290 L 610 295 L 600 300" class="arrow" transform="translate(0, -10)"></path>
+                <text x="605" y="270" class="label" fill="#10b981">5. Merge Release to main</text>
+                <text x="605" y="285" class="label" fill="#10b981">(Post-Deployment)</text>
+                
+                <!-- Tooltips (Hidden by default, shown on hover/touch) -->
+                <foreignObject x="45" y="300" width="10" height="10">
+                    <div class="tooltip" style="left: 50px; top: 270px; transform: translateX(-50%);">
+                        Main: Always stable, reflects production.
+                    </div>
+                </foreignObject>
+                <foreignObject x="145" y="180" width="10" height="10">
+                    <div class="tooltip" style="left: 170px; top: 150px; transform: translateX(-50%);">
+                        PreRelease: Integration and QA testing environment.
+                    </div>
+                </foreignObject>
+                <foreignObject x="445" y="60" width="10" height="10">
+                    <div class="tooltip" style="left: 480px; top: 30px; transform: translateX(-50%);">
+                        Release: Immutable branch deployed to production.
+                    </div>
+                </foreignObject>
+                 <foreignObject x="195" y="240" width="10" height="10">
+                    <div class="tooltip" style="left: 230px; top: 210px; transform: translateX(-50%);">
+                        Deploy/Dev: Fast-track testing environment. Never merges back!
+                    </div>
+                </foreignObject>
+                <foreignObject x="300" y="250" width="10" height="10">
+                    <div class="tooltip" style="left: 300px; top: 220px; transform: translateX(-50%);">
+                        Feature/Bugfix: Short-lived development branches off of PreRelease.
+                    </div>
+                </foreignObject>
+            </svg>
+        </div>
+
+        <!-- CONTENT FROM MARKDOWN -->
+        <h2 class="section-heading">2. Defining the Core Branches</h2>
+        <p class="card-content mb-6">
+            This workflow utilizes six distinct branch types, each serving a specific, protected role in the software lifecycle.
+        </p>
+        
+        <div class="table-container">
+            <table class="workflow-table">
+                <thead class="table-head">
+                    <tr>
+                        <th class="rounded-tl-lg">Branch Name</th>
+                        <th>Role</th>
+                        <th>Origin</th>
+                        <th>Target</th>
+                        <th class="rounded-tr-lg">Protection</th>
+                    </tr>
+                </thead>
+                <tbody class="table-body">
+                    <tr>
+                        <td class="code text-green-700 bg-green-50" style="border-bottom-left-radius: 0.5rem;">`main`</td>
+                        <td><span class="font-bold">Production Code</span> (Always stable, reflects the currently deployed state).</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td class="text-red-600 font-semibold">Protected.</td>
+                    </tr>
+                    <tr>
+                        <td class="code text-blue-700 bg-blue-50">`PreRelease_YYYYMMrX`</td>
+                        <td><span class="font-bold">Integration & QA</span> (Staging area for all upcoming features and fixes).</td>
+                        <td>Created from `main`.</td>
+                        <td>Receives merges from `feature/` and `bugfix/`.</td>
+                        <td class="text-red-600 font-semibold">Protected.</td>
+                    </tr>
+                    <tr>
+                        <td class="code text-red-700 bg-red-50">`Release_YYYYMMrX`</td>
+                        <td><span class="font-bold">Deployment Snapshot</span> (A final, read-only branch).</td>
+                        <td>Created from `PreRelease_YYYYMMrX`.</td>
+                        <td>Merged back into `main` after deployment.</td>
+                        <td class="card-content">Read-only access.</td>
+                    </tr>
+                     <tr>
+                        <td class="code text-slate-700 bg-slate-100">`deploy/dev`</td>
+                        <td><span class="font-bold">Fast-Track Deployment</span> (Quick merge and deployment to the Development environment for rapid, low-friction testing).</td>
+                        <td class="font-semibold text-blue-700">Created from the latest `PreRelease_YYYYMMrX`.</td>
+                        <td>Receives direct pushes/merges from `feature/` and `bugfix/`.</td>
+                        <td class="text-red-600 font-bold">CRITICAL: NEVER merges to any other branch.</td>
+                    </tr>
+                    <tr>
+                        <td class="code text-purple-700 bg-purple-50">`feature/JIRA-XXX-desc`</td>
+                        <td><span class="font-bold">New Feature Development</span></td>
+                        <td class="font-semibold text-blue-700">Created from the latest `PreRelease_YYYYMMrX`.</td>
+                        <td>Targets `PreRelease_YYYYMMrX` (Formal) or `deploy/dev` (Fast-Track).</td>
+                        <td class="card-content">Development access.</td>
+                    </tr>
+                    <tr>
+                        <td class="code text-purple-700 bg-purple-50" style="border-bottom-left-radius: 0.5rem;">`bugfix/JIRA-XXX-desc`</td>
+                        <td><span class="font-bold">Targeted Bug Fixes</span></td>
+                        <td class="font-semibold text-blue-700">Created from the latest `PreRelease_YYYYMMrX`.</td>
+                        <td>Targets `PreRelease_YYYYMMrX` (Formal) or `deploy/dev` (Fast-Track).</td>
+                        <td class="card-content" style="border-bottom-right-radius: 0.5rem;">Development access.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- FLOW SUMMARY -->
+        <h2 class="section-heading">3. Key Workflow Summary</h2>
+
+        <div class="summary-grid">
+            <div class="summary-card card-blue">
+                <p class="card-title">Development & Testing</p>
+                <p class="card-content">Work starts from <span class="font-bold">`PreRelease`</span> and can follow two paths:</p>
+                <ul class="list-disc">
+                    <li><span class="font-bold">Formal Path:</span> PR to `PreRelease` (requires review/CI).</li>
+                    <li><span class="font-bold">Fast-Track Path:</span> Direct merge to <span class="font-bold">`deploy/dev`</span> for quick Dev environment testing (no PR/CI required).</li>
+                </ul>
+                <code class="code-block">git checkout PreRelease &rarr; git checkout -b feature/...</code>
+            </div>
+            <div class="summary-card card-yellow">
+                <p class="card-title">Integration & QA</p>
+                <p class="card-content">Approved code is merged into the <span class="font-bold">`PreRelease_YYYYMMrX`</span> branch, where all final, official QA and stabilization occurs.</p>
+                <code class="code-block">PR: feature/... &rarr; PreRelease</code>
+            </div>
+            <div class="summary-card card-green">
+                <p class="card-title">Deployment & Finalization</p>
+                <p class="card-content">A <span class="font-bold">`Release_...`</span> snapshot is deployed to production. Upon success, this snapshot is merged back into <span class="font-bold">`main`</span> to update the production history.</p>
+                <code class="code-block">Release &rarr; main</code>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
